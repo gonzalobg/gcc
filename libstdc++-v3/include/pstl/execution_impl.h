@@ -20,12 +20,17 @@ namespace __pstl
 namespace __internal
 {
 
-template <typename _IteratorTag, typename... _IteratorTypes>
-using __are_iterators_of = std::conjunction<
-    std::is_base_of<_IteratorTag, typename std::iterator_traits<std::decay_t<_IteratorTypes>>::iterator_category>...>;
-
 template <typename... _IteratorTypes>
-using __are_random_access_iterators = __are_iterators_of<std::random_access_iterator_tag, _IteratorTypes...>;
+using __are_random_access_iterators = std::conjunction<
+#if __cplusplus >= 202002L
+    std::__or_<
+        std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<std::__remove_cvref_t<_IteratorTypes>>::iterator_category>,
+        std::integral_constant<bool, std::random_access_iterator<_IteratorTypes>>
+    >...
+#else   // __cplusplus
+        std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<std::__remove_cvref_t<_IteratorTypes>>::iterator_category>...
+#endif  // __cplusplus
+>;
 
 struct __serial_backend_tag
 {
